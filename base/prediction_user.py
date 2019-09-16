@@ -8,6 +8,7 @@ Created on Mon Sep 16 11:05:46 2019
 import pandas as pd
 from sklearn.externals import joblib
 from rating_functions import rating_prediction
+from lime_explainer import lime_explain
 
 # Rutas para archivos de modelos y encoders
 folder = 'C:/Users/P900017/Documents/Python Scripts/credit_rating_clf/base/'
@@ -27,3 +28,8 @@ data = pd.read_csv('input/rating_pred_kallpa.csv', sep=',', index_col = ["Indica
 
 # Predicción original de rating_functions
 rating_prediction(data, rf, rf_pure, feat_key, le, sov_lab_encoder, output_pred)
+
+explain_tree = True
+
+if explain_tree:
+    
