@@ -1,0 +1,16 @@
+/BASE: Código original sin modificaciones, incluye reentrenamientos
+	
+	/data
+	features.csv: Ratios financieros y nombre de variables para features_key
+	features_pure.csv: Ratios financieros y nombre de variables sin riesgo país
+	lab_encoder.csv: Categorías de ratings; escala para encoder de resultados
+	
+	/input
+	rating_pred.csv: Proyecciones para algoritmo de predicción
+
+	/model
+	Modelos .sav para predicciones, tratar de ser lo más explícito posible en el nombre del archivo
+
+	/outuput
+	Resultados de predicción - archivo por emisor
+	Gráficos adicionales
