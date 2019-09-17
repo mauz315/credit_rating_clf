@@ -26,8 +26,10 @@ min_samples_leaf = 1
 model_file = folder + 'model/original_rf_em.sav' # Modelo.
 sov_encoder_file = folder + 'model/sov_lab_encoder_em.sav' # Encoder de rating soberano.
 output_test = folder + 'output/pred_test.csv' # Archivo de salida con prediciones.
+#LIME train set
+train_set = folder + 'explainer/X_train_original.sav' # Modelo.
 
 # Training original de rating_functions
 model_training(data_em, feat_key, le, remove_nan, perc_train_size,
-               output_test, model_file, sov_encoder_file, n_estimators = n_estimators,
+               output_test, model_file, train_set, sov_encoder_file, n_estimators = n_estimators,
                min_samples_leaf = min_samples_leaf, permut=True, shuffle_sample=False)

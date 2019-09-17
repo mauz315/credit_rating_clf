@@ -15,11 +15,12 @@ def is_string(s):
         return True
     
 def model_training(data_em, feat_key, le, remove_nan, perc_train_size,
-                   output_file, model_file, sov_encoder_file, n_estimators,
+                   output_file, model_file, train_set, sov_encoder_file, n_estimators,
                    min_samples_leaf, permut=True, shuffle_sample=False):
 
     import numpy as np
     import pandas as pd
+    import joblib
 #    import matplotlib.pyplot as plt
     from sklearn.model_selection import train_test_split
     from sklearn.preprocessing import StandardScaler
@@ -27,7 +28,6 @@ def model_training(data_em, feat_key, le, remove_nan, perc_train_size,
     from sklearn.preprocessing import OneHotEncoder
     from sklearn.preprocessing import LabelEncoder
     from sklearn.utils import check_random_state
-    from sklearn.externals import joblib
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.feature_selection import SelectFromModel
     from sklearn import tree
@@ -99,6 +99,9 @@ def model_training(data_em, feat_key, le, remove_nan, perc_train_size,
     
     # Save model
     joblib.dump(clf, model_file)
+
+    # Save training set for LIME explainer
+    joblib.dump(X_train, train_set)
     
     print('Train Accuracy:', metrics.accuracy_score(y_train, clf.predict(X_train)))
     print('Test Accuracy:', metrics.accuracy_score(y_test, clf.predict(X_test)))
@@ -142,7 +145,10 @@ def rating_prediction(data, rf, rf_pure, feat_key, le, sov_lab_encoder, output_f
 
    # Tabla para print de resultados   
    # data_pred = pd.DataFrame(np.column_stack((np.column_stack((X_new, data.columns)), np.column_stack((pred_calif,np.column_stack((pred_calif_pure, pred_calif_translate)))))), columns = list(data.loc[feat_key.index].index)+['Periodo', 'Rating Predicc', 'Rating Pure', 'Rating Local Trad'])
-    data_pred = pd.DataFrame(np.column_stack((np.column_stack((X_new, data.columns)), np.column_stack((pred_calif, pred_calif_translate)))), columns = list(data.loc[feat_key.index].index)+['Periodo', 'Rating Predicc', 'Rating Local Trad'])    
+    data_pred = pd.DataFrame(np.column_stack((np.column_stack((X_new, data.columns)),
+                                              np.column_stack((pred_calif, pred_calif_translate)))),
+                                            columns = list(data.loc[feat_key.index].index)+['Periodo',
+                                                          'Rating Predicc', 'Rating Local Trad'])    
     
     print('Predicción Rating:')
     print('')
