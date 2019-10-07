@@ -7,11 +7,11 @@ Created on Mon Sep 16 15:43:18 2019
 
 # LIME explainer
 
-def explain_tree(data, period, ratings, model, train_set, sov_lab_encoder, le, feat_key):
+def explain_tree(data, period, ratings, model, train_set, sov_lab_encoder, le, feat_key, print_exp):
     
     import numpy as np
     from lime import lime_tabular
-    import webbrowser
+#    import webbrowser
     
     X_new = np.array(data.loc[feat_key.index].T)
     if sov_lab_encoder is not None:
@@ -42,15 +42,16 @@ def explain_tree(data, period, ratings, model, train_set, sov_lab_encoder, le, f
     #                                                   categorical_names=feature_names_cat, kernel_width=3)
     # Explaining prediction with Lime
     exp = explainer.explain_instance(X_new[period], model.predict_proba, num_features=5, top_labels=ratings)
-    # exp.show_in_notebook(show_table=True, show_all=False)
+    exp.show_in_notebook(show_table=True, show_all=False)
     #print(exp.available_labels())
     exp.save_to_file('explainer/lime_output.html')
     
-    av_lab = exp.available_labels()
-    for lab in av_lab:
-        print ('Explanation for class %s' % class_names[lab])
-        print ('\n'.join(map(str, exp.as_list(label=lab))))
-        print ()
+    if print_exp:
+        av_lab = exp.available_labels()
+        for lab in av_lab:
+            print ('Explanation for class %s' % class_names[lab])
+            print ('\n'.join(map(str, exp.as_list(label=lab))))
+            print ()
 #        
 #    exp_html = 'explainer/lime_output.html'
 #    webbrowser.open(exp_html,new=2)

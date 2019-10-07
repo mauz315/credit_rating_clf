@@ -37088,28 +37088,28 @@
 /***/ })
 /******/ ]);
 //# sourceMappingURL=bundle.js.map </script></head><body>
-        <div class="lime top_div" id="top_div3RQJYCJX6PUBB73"></div>
+        <div class="lime top_div" id="top_divGQ53LKXDATIJ018"></div>
         
         <script>
-        var top_div = d3.select('#top_div3RQJYCJX6PUBB73').classed('lime top_div', true);
+        var top_div = d3.select('#top_divGQ53LKXDATIJ018').classed('lime top_div', true);
         
             var pp_div = top_div.append('div')
                                 .classed('lime predict_proba', true);
             var pp_svg = pp_div.append('svg').style('width', '100%');
-            var pp = new lime.PredictProba(pp_svg, ["CCC", "B-", "B", "B+", "BB-", "BB", "BB+", "BBB-", "BBB", "BBB+", "A-", "A", "A+", "AA-", "AA", "AA+", "AAA"], [0.034, 0.058, 0.072, 0.068, 0.182, 0.254, 0.118, 0.07, 0.062, 0.03, 0.04, 0.01, 0.002, 0.0, 0.0]);
+            var pp = new lime.PredictProba(pp_svg, ["CCC", "B-", "B", "B+", "BB-", "BB", "BB+", "BBB-", "BBB", "BBB+", "A-", "A", "A+", "AA-", "AA", "AA+", "AAA"], [0.01, 0.014, 0.016, 0.042, 0.09, 0.114, 0.182, 0.078, 0.12, 0.056, 0.042, 0.086, 0.132, 0.002, 0.016]);
             
         
         var exp_div;
             var exp = new lime.Explanation(["CCC", "B-", "B", "B+", "BB-", "BB", "BB+", "BBB-", "BBB", "BBB+", "A-", "A", "A+", "AA-", "AA", "AA+", "AAA"]);
         
                 exp_div = top_div.append('div').classed('lime explanation', true);
-                exp.show([["0.30 < Ingresos del Trimestre Anualizados / Total Activo <= 0.49", 0.02139374074714529], ["0.31 < Ingresos del Trimestre Anualizados / Total Activo (Promedio LTM) <= 0.50", 0.020952217939908813], ["Activo Corto Plazo / Pasivo Corto Plazo (Promedio LTM) <= 1.09", 0.016867469188354807], ["2.53 < Deuda Neta / EBITDA del Trimestre Anualizado (Promedio LTM) <= 4.29", 0.01345143509290537], ["Deuda de Corto Plazo / Deuda Total (Promedio LTM) > 0.27", -0.012015172570307762]], 5, exp_div);
+                exp.show([["Deuda Neta / EBITDA del Trimestre Anualizado (Promedio LTM) <= 1.58", 0.03035931246457336], ["Margen EBITDA del Trimestre (Promedio LTM) > 0.32", -0.01847406814482461], ["9.00 < Rating Soberano País de Origen Deuda LP Moneda Extranjera <= 14.00", 0.01731895660689101], ["EBITDA del Trimestre Anualizado / Deuda Corto Plazo (Promedio LTM) > 5.78", -0.01242695008966911], ["Total Activo / Total Patrimonio <= 2.19", 0.01189816806572161]], 6, exp_div);
                 
                 exp_div = top_div.append('div').classed('lime explanation', true);
-                exp.show([["0.31 < Ingresos del Trimestre Anualizados / Total Activo (Promedio LTM) <= 0.50", 0.014707067146777077], ["Total Activo / Total Patrimonio > 4.21", 0.013861192401897874], ["EBITDA del Trimestre Anualizado / Deuda Corto Plazo (Promedio LTM) <= 0.88", 0.012942009486606348], ["0.30 < Ingresos del Trimestre Anualizados / Total Activo <= 0.49", 0.012858481414037106], ["Total Activo / Total Patrimonio (Promedio LTM) > 4.22", 0.011654336805478374]], 4, exp_div);
+                exp.show([["9.00 < Rating Soberano País de Origen Deuda LP Moneda Extranjera <= 14.00", -0.008830835105376413], ["Margen Neto del Trimestre (Promedio LTM) > 0.12", 0.0052038350238987905], ["Deuda Neta / EBITDA del Trimestre Anualizado <= 1.55", 0.005146301470145383], ["Margen EBITDA del Trimestre (Promedio LTM) > 0.32", 0.004601461474535002], ["Deuda Bruta / Activo (Promedio LTM) <= 0.28", -0.003479421626957095]], 12, exp_div);
                 
         var raw_div = top_div.append('div');
-            exp.show_raw_tabular([["Ingresos del Trimestre Anualizados / Total Activo", "0.35", 0.02139374074714529], ["Ingresos del Trimestre Anualizados / Total Activo (Promedio LTM)", "0.34", 0.020952217939908813], ["Activo Corto Plazo / Pasivo Corto Plazo (Promedio LTM)", "0.50", 0.016867469188354807], ["Deuda Neta / EBITDA del Trimestre Anualizado (Promedio LTM)", "3.62", 0.01345143509290537], ["Deuda de Corto Plazo / Deuda Total (Promedio LTM)", "0.58", -0.012015172570307762]], 5, raw_div);
+            exp.show_raw_tabular([["Deuda Neta / EBITDA del Trimestre Anualizado (Promedio LTM)", "-1.32", 0.03035931246457336], ["Margen EBITDA del Trimestre (Promedio LTM)", "0.40", -0.01847406814482461], ["Rating Soberano País de Origen Deuda LP Moneda Extranjera", "14.00", 0.01731895660689101], ["EBITDA del Trimestre Anualizado / Deuda Corto Plazo (Promedio LTM)", "388.19", -0.01242695008966911], ["Total Activo / Total Patrimonio", "1.30", 0.01189816806572161]], 6, raw_div);
         
         </script>
         </body></html>

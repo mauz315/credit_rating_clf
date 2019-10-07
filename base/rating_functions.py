@@ -16,7 +16,7 @@ def is_string(s):
     
 def model_training(data_em, feat_key, le, remove_nan, perc_train_size,
                    output_file, model_file, train_set, sov_encoder_file, n_estimators,
-                   min_samples_leaf, permut=True, shuffle_sample=False):
+                   min_samples_leaf, permut=True, shuffle_sample=False, conf_matrix=True):
 
     import numpy as np
     import pandas as pd
@@ -32,7 +32,11 @@ def model_training(data_em, feat_key, le, remove_nan, perc_train_size,
     from sklearn.feature_selection import SelectFromModel
     from sklearn import tree
     from sklearn import metrics    
-
+    from sklearn.metrics import confusion_matrix
+    from sklearn.metrics import classification_report
+    import matplotlib.pyplot as plt
+#    from sklearn.metrics import roc_curve, auc
+    
     data_index = data_em.index # Se crea la variable data_index para publicar el output.
     y_ = np.array(data_em.pop('IssuerRating'))
     X_ = np.array(data_em[feat_key["Key"]])
@@ -52,8 +56,8 @@ def model_training(data_em, feat_key, le, remove_nan, perc_train_size,
     
     y = np.array(a)
     
+    # Encode Sovereign Rating
     sr = feat_key[feat_key["Key"] == 'SovereignRating']
-    
     if len(sr)>0:
         pos_sr = feat_key.index.get_loc(sr.index[0])# Position sovereign rating
         pos_str = [is_string(x) for x in X[:,pos_sr]]
@@ -74,7 +78,17 @@ def model_training(data_em, feat_key, le, remove_nan, perc_train_size,
     #    imp.fit(X = X_train)
     #     X = imp.transform(X)
     
-    # Data Permutation: PREGUNTAR QUE ES !!!!!
+    #Visualización de clases luego de retirar NaNs    
+#    r = list()
+#    for i in y:
+#        r.append(le.index[le.iloc[i[0]][0]])
+#    r = pd.DataFrame(r, columns=['Rating'])
+#    r["Rating"].value_counts().plot(kind='bar')
+#    plt.show()
+    
+    # Data Permutation: Para si es necesario volver 
+    X_o = X
+    y_o = y
     if permut:
         random_state = check_random_state(0)
         permutation = random_state.permutation(X.shape[0])
@@ -103,16 +117,51 @@ def model_training(data_em, feat_key, le, remove_nan, perc_train_size,
     # Save training set for LIME explainer
     joblib.dump(X_train, train_set)
     
-    print('Train Accuracy:', metrics.accuracy_score(y_train, clf.predict(X_train)))
-    print('Test Accuracy:', metrics.accuracy_score(y_test, clf.predict(X_test)))
+    # Prediction files por training and test sets
+    pred_train = clf.predict(X_train)
+    pred_test = clf.predict(X_test)
+    pred_o = clf.predict(X_o)
     
-    res = clf.predict(X_train)
+    print('Train Accuracy:', metrics.accuracy_score(y_train, pred_train))
+    print('Test Accuracy:', metrics.accuracy_score(y_test, pred_test))
+    print('Original Set Accuracy:', metrics.accuracy_score(y_o, pred_o))
+    print(classification_report(y_test, pred_test))
     
-    mse_train = metrics.mean_squared_error(y_train, res)
-    mse_test = metrics.mean_squared_error(y_test, clf.predict(X_test))
+    mse_train = metrics.mean_squared_error(y_train, pred_train)
+    mse_test = metrics.mean_squared_error(y_test, pred_test)
     print("Train MSE: {}".format(mse_train))
     print("Test MSE: {}".format(mse_test))
+    
+    #Confusion matrix of test data 
+    if conf_matrix:
+        conf_mat = confusion_matrix(y_test, pred_test)
+        print(conf_mat)
+    
+    # output file:
 
+    pred_calif = np.array([le.iloc[x == list(le.iloc[:,0]),0].index[0] for x in clf.predict(X_test)])
+    y_test_calif = np.array([le.iloc[x == list(le.iloc[:,0]),0].index[0] for x in y_test])
+    
+    if len(sr)>0:
+        X_test[:, pos_sr] = le_X.inverse_transform(X_test[:, pos_sr].astype('int')) # Inverse transform of sov. ratingsS
+
+    data_test = pd.DataFrame(np.column_stack((np.column_stack((X_test, y_test_calif)), pred_calif)), columns = list(feat_key.index)+['Rating Test', 'Rating Predicc'], index = data_index[np.arange(train_size, data_index.shape[0])])
+
+    # Output file:
+    data_test.to_csv(output_file)
+    
+    
+    # Compute ROC curve and ROC area for each class
+#    fpr = dict()
+#    tpr = dict()
+#    roc_auc = dict()
+#    for i in range(n_classes):
+#        fpr[i], tpr[i], _ = roc_curve(y_test[:, i], y_score[:, i])
+#        roc_auc[i] = auc(fpr[i], tpr[i])
+#
+#    # Compute micro-average ROC curve and ROC area
+#    fpr["micro"], tpr["micro"], _ = roc_curve(y_test.ravel(), y_score.ravel())
+#    roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
 
 # Función de predicción
 def rating_prediction(data, rf, rf_pure, feat_key, le, sov_lab_encoder, output_file):
