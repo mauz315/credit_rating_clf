@@ -13,9 +13,26 @@ def is_string(s):
         return False
     except ValueError:
         return True
+
+
+def feat_elim(data,feat_key, to_del):
+    dummy = tuple(to_del)
+    for ratio in dummy:
+        to_del.append("Ratio" + str(int(ratio[-1:])+13))
     
-def model_training(data_em, feat_key, le, remove_nan, perc_train_size,
-                   output_file, model_file, train_set, sov_encoder_file, n_estimators,
+    for column in to_del:
+        del data[column]
+            
+    rem_feat = []
+    for ratio in list(feat_key.Key):
+        rem_feat.append(ratio in to_del)
+    
+    rem_feat = feat_key.index[rem_feat]        
+    feat_key.drop(rem_feat, inplace=True)
+    return(data, feat_key)
+
+def model_training(data_em, feat_key, le, remove_nan, output_file,
+                   model_file, train_set, sov_encoder_file, n_estimators,
                    min_samples_leaf, permut=True, shuffle_sample=False, conf_matrix=True):
 
     import numpy as np
@@ -23,18 +40,23 @@ def model_training(data_em, feat_key, le, remove_nan, perc_train_size,
     import joblib
 #    import matplotlib.pyplot as plt
     from sklearn.model_selection import train_test_split
-    from sklearn.preprocessing import StandardScaler
+    from sklearn.model_selection import RandomizedSearchCV
     from sklearn.preprocessing import Imputer
     from sklearn.preprocessing import OneHotEncoder
     from sklearn.preprocessing import LabelEncoder
+    from sklearn.preprocessing import RobustScaler
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.preprocessing import QuantileTransformer
+    from sklearn.preprocessing import PowerTransformer
     from sklearn.utils import check_random_state
     from sklearn.ensemble import RandomForestClassifier
-    from sklearn.feature_selection import SelectFromModel
+#    from sklearn.feature_selection import SelectFromModel
     from sklearn import tree
     from sklearn import metrics    
     from sklearn.metrics import confusion_matrix
     from sklearn.metrics import classification_report
     import matplotlib.pyplot as plt
+    from pprint import pprint
 #    from sklearn.metrics import roc_curve, auc
     
     data_index = data_em.index # Se crea la variable data_index para publicar el output.
@@ -99,28 +121,78 @@ def model_training(data_em, feat_key, le, remove_nan, perc_train_size,
         data_index = data_index[permutation]
     
     # Train and test samples:
+    perc_train_size = 0.8
     train_size = int(X.shape[0] * perc_train_size)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = train_size, shuffle = shuffle_sample)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = train_size, shuffle = False)
     
     print('Muestra de entrenamiento: %d' % X_train.shape[0])
     print('Muestra de testing: %d' % X_test.shape[0])
     print('')
+    
+    scale = True
+    if scale:
+        sov_train = X_train[:,-1] 
+        sov_test = X_test[:,-1]
+        scaler = RobustScaler()
+        scaler.fit(X_train[:,:-1])
+        X_train = np.column_stack((scaler.transform(X_train[:,:-1]), sov_train))
+        X_test = np.column_stack((scaler.transform(X_test[:,:-1]), sov_test))
+        joblib.dump(scaler, 'model/my_scaler.sav')
     y = np.array(y)
     
-    # Model fitting:
+    # Initializing model:
     clf = RandomForestClassifier(n_estimators = n_estimators, max_features = "auto", min_samples_leaf = min_samples_leaf)
-    clf.fit(X_train, np.ravel(y_train))
+    
+#    Randomized Search CV Hyperparameter Optimization
+    print('Parameters currently in use:\n')
+    pprint(clf.get_params())
+    
+    #  Number of trees in random forest
+    n_estimators = [int(x) for x in np.linspace(start = 200, stop = 2000, num = 10)]
+    # Number of features to consider at every split
+    max_features = ['auto', 'sqrt']
+    # Maximum number of levels in tree
+    max_depth = [int(x) for x in np.linspace(50, 300, num = 25)]
+    max_depth.append(None)
+    # Minimum number of samples required to split a node
+    min_samples_split = [2, 5, 10]
+    # Minimum number of samples required at each leaf node
+    min_samples_leaf = [1, 2, 5, 10]
+    # Method of selecting samples for training each tree
+    bootstrap = [True, False]
+    # Create the random grid
+    random_grid = {'n_estimators': n_estimators,
+                   'max_features': max_features,
+                   'max_depth': max_depth,
+                   'min_samples_split': min_samples_split,
+                   'min_samples_leaf': min_samples_leaf,
+                   'bootstrap': bootstrap}
+    pprint(random_grid)
+    rf_random = RandomizedSearchCV(estimator = clf, param_distributions = random_grid,
+                                   n_iter = 100, cv = 3, verbose=2, random_state=42, 
+                                   n_jobs = -1)
+#        
+#    # Model fitting:
+    rf_random.fit(X_train, np.ravel(y_train))
+#    pprint(rf_random.best_params_)
+#    clf.fit(X_train, np.ravel(y_train))
+    # Print importances
+#    importances = list(clf.feature_importances_)
+#    feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(list(feat_key.index), importances)]
+#    
+#    feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
+#    [print('Variable: {:20} Importance: {}'.format(*pair)) for pair in feature_importances]
     
     # Save model
-    joblib.dump(clf, model_file)
+    joblib.dump(rf_random, model_file)
 
     # Save training set for LIME explainer
     joblib.dump(X_train, train_set)
     
     # Prediction files por training and test sets
-    pred_train = clf.predict(X_train)
-    pred_test = clf.predict(X_test)
-    pred_o = clf.predict(X_o)
+    pred_train = rf_random.predict(X_train)
+    pred_test = rf_random.predict(X_test)
+    pred_o = rf_random.predict(X_o)
     
     print('Train Accuracy:', metrics.accuracy_score(y_train, pred_train))
     print('Test Accuracy:', metrics.accuracy_score(y_test, pred_test))
@@ -139,7 +211,7 @@ def model_training(data_em, feat_key, le, remove_nan, perc_train_size,
     
     # output file:
 
-    pred_calif = np.array([le.iloc[x == list(le.iloc[:,0]),0].index[0] for x in clf.predict(X_test)])
+    pred_calif = np.array([le.iloc[x == list(le.iloc[:,0]),0].index[0] for x in rf_random.predict(X_test)])
     y_test_calif = np.array([le.iloc[x == list(le.iloc[:,0]),0].index[0] for x in y_test])
     
     if len(sr)>0:
@@ -164,16 +236,26 @@ def model_training(data_em, feat_key, le, remove_nan, perc_train_size,
 #    roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
 
 # Función de predicción
-def rating_prediction(data, rf, rf_pure, feat_key, le, sov_lab_encoder, output_file):
+def rating_prediction(data, rf, rf_pure, feat_key, le, sov_lab_encoder, scaler, output_file):
     # rf: modelo base con riesgo soberano
     # rf_pure: modelo sin riesgo sobreano para DM, POR ELIMINAR
     
     import numpy as np
     import pandas as pd
-
+    
+    to_del = ["Ratio7", "Ratio13"]
+    for ratio in to_del:
+        rat1 = feat_key[feat_key.Key == ratio].index
+        rat2 = feat_key[feat_key.Key == "Ratio" + str(int(ratio[-1:])+13)].index
+        data = data.drop(rat1)
+        data = data.drop(rat2)
+            
     # Importando nueva data:
     X_new = np.array(data.loc[feat_key.index].T)
     X_new_pure = np.array(data.loc[feat_key.index[(feat_key != 'SovereignRating')['Key']]].T)
+    
+    sov_new = X_new[:,-1]
+    X_new = np.column_stack((scaler.transform(X_new[:,:-1]), sov_new))
 
     # Transformando info soberanos a escala
     if sov_lab_encoder != None:

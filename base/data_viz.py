@@ -10,8 +10,8 @@ import seaborn as sns
 
 # Data explorer: pairplot
 # Ratings a evaluar
-search_ratings = ["BB","BBB+","AA","CCC"]
-ratios = ['Ratio2', 'Ratio3', 'Ratio6', 'Ratio13']
+search_ratings = ["B-", "B+", "BB-","BBB+", "BB+", "BBB-", "BBB"]
+ratios = ['Ratio3', 'Ratio4', 'Ratio5']
 
 # Read in data as a dataframe
 feat_key = pd.read_csv('data/features.csv', sep=',', index_col = ["Feature"], encoding = "latin1")
@@ -35,7 +35,7 @@ reduced_features = reduced_features[ratios]
 # Use seaborn for pair plots
 sns.set(style="ticks", color_codes=True);
 # Create a custom color palete
-palette = sns.xkcd_palette(['dark blue', 'dark green', 'gold', 'orange'])
+palette = sns.xkcd_palette(['dark blue', 'dark green', 'gold', 'orange', "black", "dark red", "silver"])
 # Make the pair plot with a some aesthetic changes
 sns.pairplot(reduced_features, hue = 'IssuerRating', diag_kind = 'kde', palette= palette, plot_kws=dict(alpha = 0.7),
                    diag_kws=dict(shade=True)).savefig("variables.png")
